@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <time.h>
 using namespace std;
 
 bool isItVisited(vector<vector<int>> route, int routeNum, int vertex)
@@ -70,26 +71,26 @@ int heldKarp(int ** graph, int size)
 			minVertex = i;
 		}
 	}
-	for (int j = 0; j < route[minVertex].size(); j++)
+	/*for (int j = 0; j < route[minVertex].size(); j++)
 	{
 		cout << route[minVertex][j] << endl;
-	}
+	}*/
 	return minDist;
 }
 
 int main()
 {
-	int size = 8;
+	int size = 1000;
 	int** adjMatrix = new int*[size];
 	for (int i = 0; i < size; i++)
 	{
 		adjMatrix[i] = new int[size];
 		for (int j = 0; j < size; j++)
 		{
-			adjMatrix[i][j] = 0;
+			adjMatrix[i][j] = 1;
 		}
 	}
-	adjMatrix[0][1] = 2;
+	/*adjMatrix[0][1] = 2;
 	adjMatrix[0][2] = 1;
 	adjMatrix[0][3] = 4;
 	adjMatrix[1][2] = 1;
@@ -103,7 +104,10 @@ int main()
 	adjMatrix[5][7] = 3;
 	adjMatrix[6][4] = 4;
 	adjMatrix[6][5] = 2;
-	adjMatrix[7][6] = 1;
-
+	adjMatrix[7][6] = 1;*/
+	clock_t time = clock();
 	cout << "The min dist: " << heldKarp(adjMatrix, size) << endl;
+	time = clock() - time;
+	cout << "The time taken to run the algorithm is:" << (double)time / CLOCKS_PER_SEC << " seconds" << endl;
+	//system("pause");
 }
