@@ -1,5 +1,9 @@
 #include <iostream>
 #include <vector>
+#include <time.h>
+#include <string>
+#include<algorithm>
+#include <unordered_map>
 using namespace std;
 
 bool isItVisited(vector<vector<int>> route, int routeNum, int vertex)
@@ -14,82 +18,104 @@ bool isItVisited(vector<vector<int>> route, int routeNum, int vertex)
 	}
 	return found;
 }
-
-int heldKarp(int ** graph, int size)
+void printVec(vector<int> cities, int size)
 {
 	for (int i = 0; i < size; i++)
 	{
-		for (int j = 0; j < size; j++)
-		{
-			if (graph[i][j] == 0)	graph[i][j] = 10000;
-		}
+		cout << cities[i] << " ";
 	}
-	vector<vector<int>> route;
-	route.resize(size);
-	vector<vector<int>> distances;
-	distances.resize(size);
+	cout << endl;
+}
+int returnPrevCalc(vector<int> cities, int size, int start, unordered_map<string, int> distances)
+{
+	int sigma = 0;
 	for (int i = 0; i < size; i++)
 	{
-		route[i].push_back(i);
-		distances[i].push_back(0);
+		int a = 1 << cities[i];
+		sigma = sigma + a ;
 	}
-	
-
-	//to do the inner forloops multiple times
-	for (int k = 0; k < size-1; k++)
+	string a = to_string(sigma);
+	string b = to_string(start);
+	string key = a + "|" + b;
+	if (distances.count(key) > 0)
 	{
-		//outer for loop to go through all beginnings
-		for (int i = 0; i < size; i++)
+		return distances.at(key);
+	}
+	else return -1;
+
+}
+void setToDistances(vector<int> cities, int size, int start, unordered_map<string, int>& distances, int distance)
+{
+	int sigma = 0;
+	for (int i = 0; i < size; i++)
+	{
+		int x = 1 << cities[i];
+		sigma = sigma + x;
+	}
+	string a = to_string(sigma);
+	string b = to_string(start);
+	string key = a + "|" + b;
+	distances.insert({ key, distance });
+}
+int heldKarpDP(vector<int> cities, int size, int ** graph, int start, unordered_map<string, int>& distances)
+{
+	std::remove(cities.begin(), cities.end(), start);
+	int minDist = INT_MAX;
+	int prevCalcMinDist = returnPrevCalc(cities, size-1, start, distances);
+	if (prevCalcMinDist < 0) {
+		if (size == 2)
 		{
-			int nearestVertex = 0;
-			int shortestDist = INT_MAX;
-			// inner for loop to go through all unvisited and add the least.
-			for (int j = 0; j < size; j++)
+			minDist = graph[start][cities[0]];
+		}
+		else {
+			int size1 = size - 1;
+			for (int i = 0; i < size1; i++)
 			{
-				if (!isItVisited(route, i, j))
+				int tempDist = heldKarpDP(cities, size1, graph, cities[i], distances) + graph[start][cities[i]];
+				if (tempDist < minDist)
 				{
-					int tempDist = distances[i][k] + graph[route[i][k]][j];
-					if (tempDist < shortestDist)
-					{
-						shortestDist = tempDist;
-						nearestVertex = j;
-					}
+					minDist = tempDist;
 				}
 			}
-			route[i].push_back(nearestVertex);
-			distances[i].push_back(shortestDist);
 		}
-	}
-	int minDist = INT_MAX;
-	int minVertex = 0;
+		setToDistances(cities, size-1, start, distances, minDist);
+	}else minDist = prevCalcMinDist;
+	return minDist;	
+}
+int heldKarp(int ** graph, int size)
+{
+	vector<int> cities;
 	for (int i = 0; i < size; i++)
 	{
-		if (distances[i][size - 1] < minDist)
+		cities.push_back(i);
+	}
+	unordered_map<string, int> distances;
+	int minDist = INT_MAX;
+	for (int i = 0; i < size; i++)
+	{
+		int tempDist = heldKarpDP(cities, size, graph, i, distances);
+		if (tempDist < minDist)
 		{
-			minDist = distances[i][size - 1];
-			minVertex = i;
+			minDist = tempDist;
 		}
 	}
-	for (int j = 0; j < route[minVertex].size(); j++)
-	{
-		cout << route[minVertex][j] << endl;
-	}
+
 	return minDist;
 }
 
 int main()
 {
-	int size = 8;
+	int size = 12;
 	int** adjMatrix = new int*[size];
 	for (int i = 0; i < size; i++)
 	{
 		adjMatrix[i] = new int[size];
 		for (int j = 0; j < size; j++)
 		{
-			adjMatrix[i][j] = 0;
+			adjMatrix[i][j] = i+j;
 		}
 	}
-	adjMatrix[0][1] = 2;
+	/*adjMatrix[0][1] = 2;
 	adjMatrix[0][2] = 1;
 	adjMatrix[0][3] = 4;
 	adjMatrix[1][2] = 1;
@@ -103,7 +129,9 @@ int main()
 	adjMatrix[5][7] = 3;
 	adjMatrix[6][4] = 4;
 	adjMatrix[6][5] = 2;
-	adjMatrix[7][6] = 1;
-
+	adjMatrix[7][6] = 1;*/
+	clock_t time = clock();
 	cout << "The min dist: " << heldKarp(adjMatrix, size) << endl;
+	time = clock() - time;
+	cout << "The time taken to run the algorithm is:" << (double)time / CLOCKS_PER_SEC << " seconds" << endl;
 }
