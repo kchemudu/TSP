@@ -6,26 +6,6 @@
 #include <unordered_map>
 using namespace std;
 
-bool isItVisited(vector<vector<int>> route, int routeNum, int vertex)
-{
-	bool found = false;
-	for (int i = 0; i < route[routeNum].size() && !found; i++)
-	{
-		if (route[routeNum][i] == vertex)
-		{
-			found = true;
-		}
-	}
-	return found;
-}
-void printVec(vector<int> cities, int size)
-{
-	for (int i = 0; i < size; i++)
-	{
-		cout << cities[i] << " ";
-	}
-	cout << endl;
-}
 int returnPrevCalc(vector<int> cities, int size, int start, unordered_map<string, int> distances)
 {
 	int sigma = 0;
