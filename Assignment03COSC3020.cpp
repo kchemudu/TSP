@@ -4,8 +4,10 @@
 #include <string>
 #include<algorithm>
 #include <unordered_map>
+#include <limits.h> //clang doesnt recognize INT_MAX on its own. 
 using namespace std;
 
+// I use this function in HeldkarpDp to get previously calculated distance if done before. If not done before, the function returns -1. 
 int returnPrevCalc(vector<int> cities, int size, int start, unordered_map<string, int> distances)
 {
 	int sigma = 0;
@@ -24,6 +26,8 @@ int returnPrevCalc(vector<int> cities, int size, int start, unordered_map<string
 	else return -1;
 
 }
+// This is used to set a key with the calculated distance in the map. 
+//if from node 3 i visit nodes 0, 1 and 2, as 2^0+2^1+2^2 = 7, I put "7|3" as the key with the distance in the map. 
 void setToDistances(vector<int> cities, int size, int start, unordered_map<string, int>& distances, int distance)
 {
 	int sigma = 0;
@@ -37,6 +41,11 @@ void setToDistances(vector<int> cities, int size, int start, unordered_map<strin
 	string key = a + "|" + b;
 	distances.insert({ key, distance });
 }
+// Recurses through all possible permutations, of n-1 nodes, with other node as the start node. gets the lowest distance to travel all the nodes
+// for a given start. 
+// Assumptions made:
+/*1. The graph is fully connected. i.e. edges exist between one node to every other node.
+  2. The graph has positive weights for edges.*/
 int heldKarpDP(vector<int> cities, int size, int ** graph, int start, unordered_map<string, int>& distances)
 {
 	std::remove(cities.begin(), cities.end(), start);
@@ -64,14 +73,16 @@ int heldKarpDP(vector<int> cities, int size, int ** graph, int start, unordered_
 }
 int heldKarp(int ** graph, int size)
 {
-	vector<int> cities;
-	for (int i = 0; i < size; i++)
+	//Used this vector to keep track of unvisited node, because it is easy to remove elements from a vector using std::remove().
+	vector<int> cities;//stores the unvisited nodes. 
+	for (int i = 0; i < size; i++)// push 0-1-2-3----n in the beginning.
 	{
 		cities.push_back(i);
 	}
-	unordered_map<string, int> distances;
+	// Used an unordered map because of O(1) memory access.
+	unordered_map<string, int> distances;// Map to hold the key and the distance everytime we calculate something new.
 	int minDist = INT_MAX;
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)// gets the least distance from all beginnings. 
 	{
 		int tempDist = heldKarpDP(cities, size, graph, i, distances);
 		if (tempDist < minDist)
@@ -79,20 +90,29 @@ int heldKarp(int ** graph, int size)
 			minDist = tempDist;
 		}
 	}
-
+	//cout << "The size of the memoization DS: " << distances.size() << endl;
 	return minDist;
 }
 
 int main()
 {
-	int size = 10;
+	//checked for size of 0 which doesn't let the actual function heldKarpDP get executed at all, and that is why it just returns INT_MAX.
+	/*int size = 0;
+	int size = 1;*/
+	// I have just one matrix for the test because, regardless of the weights in the graph, the algorithm will process all possible subsets. 
+	// I also assume as stated above that the graph i recieve is fully connected, so didn't test for adjMatrix with all zeroes. The result if i tested with a matrix of all zeroes 
+	// will result in a minDist of zero. 
+	int size = 8;
 	int** adjMatrix = new int*[size];
 	for (int i = 0; i < size; i++)
 	{
 		adjMatrix[i] = new int[size];
 		for (int j = 0; j < size; j++)
 		{
-			adjMatrix[i][j] = i+j;
+			if (i == j) {
+				adjMatrix[i][j] = 0;
+			}
+			else { adjMatrix[i][j] = i + j; }
 		}
 	}
 	/*adjMatrix[0][1] = 2;
